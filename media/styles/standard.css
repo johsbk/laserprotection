@@ -1,0 +1,7 @@
+@CHARSET "ISO-8859-1";
+.bubble {
+	border: 1px solid black;
+	width: 150px;
+	height: 50px;
+	position:absolute;
+}
