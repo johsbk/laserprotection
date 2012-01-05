@@ -309,7 +309,7 @@ class Index extends BaseController {
 	            $right[] = $v;
 	        }
 	    }
-	    $array =array_merge($this->mergesort($left,$index), array($pivot), $this->mergesort($right,$index));
+	    $array =array_merge($this->quicksort($left,$index), array($pivot), $this->quicksort($right,$index));
 	 	
 	    return $array;
 	}
