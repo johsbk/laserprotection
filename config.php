@@ -3,10 +3,6 @@ use main\controllers\Index;
 use templates\TemplatesConfig;
 use main\controllers\Product;
 
-define("MYSQL_USER","soyouz");
-define("MYSQL_PASS","hejdav");
-define("MYSQL_HOST","localhost");
-define("MYSQL_DB","laserprotection");
 $local = true;
 
 $reg = \templates\mvc\Registry::getInstance();
