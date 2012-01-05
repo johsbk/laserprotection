@@ -4,6 +4,10 @@ use templates\TemplatesConfig;
 use main\controllers\Product;
 
 $local = true;
+define("MYSQL_USER","debug");
+define("MYSQL_PASS","debug");
+define("MYSQL_HOST","localhost");
+define("MYSQL_DB","laserprotection");
 
 $reg = \templates\mvc\Registry::getInstance();
 $reg->installed_apps =array(
