@@ -1,0 +1,171 @@
+{% extends "views/layouts/main.twig" %}
+{% block head %}
+	{{ parent() }}
+	<script type="text/javascript">
+		var points = [];
+		{% for v in vs %}
+			points[{{ loop.index0 }}] = { x: {{ v.x }}, y: {{ v.y }} };
+		{% endfor %}
+		var ch = [];
+		{% for v in ch %}
+			ch[{{ loop.index0 }}] = { x: {{ v.x }}, y: {{ v.y }} };
+		{% endfor %}
+		var defense = [];	
+		var ignore = [];
+		var orgdefense = defense;
+		var Draw = {
+			closesti : null,
+			getstatus : 0,
+			init : function () {
+				$("#defense").change(Draw.getDefense);
+				Draw.getDefense();
+				$("#canvas").mousedown(Draw.mousedown);
+				$("#canvas").bind('contextmenu',Draw.contextmenu);
+			},
+			getDefense : function () {
+				if (Draw.getstatus==0) {
+					Draw.getstatus = 1;
+					$.post("index.php?r=site/getDefense",{defense: $("#defense").val(), points: points},function (txt) {
+						var data = $.parseJSON(txt);
+						defense = data.defense;
+						ch = data.ch;
+						$("#lb").html(data.lb);
+						Draw.draw();
+						if (Draw.getstatus==2) {
+							Draw.getstatus = 0;
+							Draw.getDefense();
+						} else {
+							Draw.getstatus = 0;
+						}
+					});
+				} else {
+					Draw.getstatus = 2;
+				}
+			},
+			draw : function () {
+				var canvas = $("#canvas").get(0);
+				var c = canvas.getContext('2d');
+				c.fillStyle = "#FFFFFF";
+				c.fillRect(0,0,canvas.width,canvas.height);
+				c.beginPath();
+				c.moveTo(ch[0].x*3,ch[0].y*3);
+				c.strokeStyle = "#FF0000"
+				for (var i=1;i<ch.length;i++) {
+					c.lineTo(ch[i].x*3,ch[i].y*3);				
+				}
+				c.lineTo(ch[0].x*3,ch[0].y*3);
+				c.stroke();
+				c.fillStyle="#000000";
+				var html = "";
+				for (var i=0;i<points.length;i++) {
+					c.fillRect(points[i].x*3-1,points[i].y*3-1,3,3);
+					html += ""+(i+1)+": ("+points[i].x+","+points[i].y+")<input type=\"button\" value=\"remove\" onclick=\"Draw.removePoint("+i+")\" /><br />";
+				}
+				
+				c.strokeStyle = "#00FF00";
+				c.beginPath();
+				var cost = 0;
+				
+				for (var i=0;i<defense.length;i++) {
+					c.moveTo(defense[i].v1.x*3,defense[i].v1.y*3);
+					c.lineTo(defense[i].v2.x*3,defense[i].v2.y*3);
+					cost += Draw.distance(defense[i].v1.x,defense[i].v1.y,defense[i].v2.x,defense[i].v2.y);
+					
+				}
+				c.stroke();
+				$("#cost").html(cost);
+				$("#vs").html(html);
+			},
+			removePoint: function (i) {
+				var ps=[];
+				for (var j=0;j<points.length;j++) {
+					if (j!=i) {
+						ps[ps.length]=points[j];
+					}
+				}
+				points = ps;
+				Draw.getDefense();
+			},
+			hideEdge : function (i) {
+				
+				ignore[i] = !ignore[i];
+				Draw.draw();
+			},
+			distance : function (x1,y1,x2,y2) {
+				return Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
+			},
+			clear : function () {
+				defense = [];
+				ignore = [];
+				Draw.draw();
+			},
+			reset : function () {
+				defense = orgdefense;
+				ignore = [];
+				Draw.draw();
+			},
+			contextmenu : function (e) {
+				var pos = {
+					x : Math.round((e.pageX-$("#canvas").offset().left)/3),
+					y: Math.round((e.pageY-$("#canvas").offset().top)/3)
+				};
+				points[points.length] = pos;
+				Draw.getDefense();
+				return false;
+			},
+			mousedown : function (e) {
+				if (e.which==1) {
+					var pos = {
+						x : Math.round((e.pageX-$("#canvas").offset().left)/3),
+						y: Math.round((e.pageY-$("#canvas").offset().top)/3)
+					};
+					
+					var distance;
+					for (var i=0;i<points.length;i++) {
+						var p = points[i];
+						var d = Draw.distance(p.x,p.y,pos.x,pos.y);
+						if (Draw.closesti==null || distance > d) {
+							Draw.closesti = i;
+							distance = d;
+						}
+					}
+					$(document).mouseup(Draw.mouseup);
+					$(document).mousemove(Draw.mousemove);
+				}
+				
+			},
+			mouseup : function (e) {
+				$(document).unbind('mouseup');
+				$(document).unbind('mousemove');
+				Draw.closesti=null;
+			},
+			mousemove : function (e) {
+				var pos = {
+						x : Math.round((e.pageX-$("#canvas").offset().left)/3),
+						y: Math.round((e.pageY-$("#canvas").offset().top)/3)
+					};
+				points[Draw.closesti].x=pos.x;
+				points[Draw.closesti].y=pos.y;
+				Draw.getDefense();
+			},
+		};
+		$(Draw.init);
+	</script>
+{% endblock %}
+{% block content %}
+	<table>
+	<tr><td>
+	<canvas id="canvas" height="600" width="800">No canvas support</canvas>
+	</td><td>
+		<select id="defense">
+		{% for defense in defenses %}
+			<option value="{{defense}}">{{defense}}</option>
+		{% endfor %}
+		</select>
+		<div id="vs"></div>
+		<div id="cost"></div>
+		LB: <div id="lb">{{ lb }}</div>
+	</td></tr>
+	</table>
+	Drag and drop to move terminals, right click to place new.
+{% endblock %}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+{% block head %}
+<link rel="stylesheet" href="{{ App.request.baseUrl }}/css/standard.css" />
+<script src="{{ App.request.baseUrl }}/js/jquery.js"></script>
+<title>Laser protection</title>
+{% endblock %}
+</head>
+<body>
+<table>
+<tr><td valign="top">
+{% block menu %}
+
+{% endblock %}
+</td><td valign="top">
+	{% block content %}
+	{% endblock %}
+</td></tr>
+</table>
+</body>
+</html>

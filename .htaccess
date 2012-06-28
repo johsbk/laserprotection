@@ -1,4 +1,0 @@
-RewriteEngine on
-RewriteRule ^(media|lean|film|templates/media|phpmyadmin)/ - [L]
-RewriteRule ^(.*)$ index.php?rt=$1 [L,QSA]
-
